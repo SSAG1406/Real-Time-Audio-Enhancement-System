@@ -5,6 +5,7 @@ This MATLAB-based toolkit provides an automated, professional-grade audio proces
 As a bonus, this repository includes several interactive demonstrations of fundamental DSP concepts, making it a great resource for both audio engineers and signal processing students.
 
 ✨ **Key Features**
+
 🎧 **Audio Processing Pipeline**
 
 The core enhancement system pushes raw audio through a 6-step professional processing chain:
