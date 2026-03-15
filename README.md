@@ -1,4 +1,5 @@
-Smart Audio Quality Enhancement System for Podcast Production 🎙️
+**Smart Audio Quality Enhancement System for Podcast Production **
+
 This MATLAB-based toolkit provides an automated, professional-grade audio processing pipeline for podcast creators. It applies advanced Digital Signal Processing (DSP) techniques to clean up raw audio, remove background noise, and apply equalization and compression—achieving studio-quality results without the need for expensive hardware.
 
 As a bonus, this repository includes several interactive demonstrations of fundamental DSP concepts, making it a great resource for both audio engineers and signal processing students.
