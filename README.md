@@ -4,8 +4,9 @@ This MATLAB-based toolkit provides an automated, professional-grade audio proces
 
 As a bonus, this repository includes several interactive demonstrations of fundamental DSP concepts, making it a great resource for both audio engineers and signal processing students.
 
-✨ Key Features
-🎧 Audio Processing Pipeline
+✨ **Key Features**
+🎧 **Audio Processing Pipeline**
+
 The core enhancement system pushes raw audio through a 6-step professional processing chain:
 
 Spectrum Analysis: Utilizes Welch's method to estimate the Power Spectral Density (PSD) and characterize background noise.
@@ -20,7 +21,8 @@ Dynamic Range Compression: Smooths out volume inconsistencies, ensuring the spea
 
 Final Limiting & Normalization: Applies soft limiting to prevent digital clipping and normalizes the final output to -1 dBFS.
 
-📚 Educational DSP Demonstrations
+📚 **Educational DSP Demonstrations**
+
 Alongside the main pipeline, the script includes practical demonstrations of core DSP principles:
 
 Linear vs. Circular Convolution: Analyzes the differences and error margins between standard convolution and DFT-based zero-padded circular convolution.
@@ -33,8 +35,10 @@ Sample Rate Conversion: Demonstrates upsampling (interpolation) and downsampling
 
 DFT/IDFT Properties: Verifies perfect reconstruction and demonstrates frequency-domain low-pass filtering.
 
-🚀 Getting Started
+🚀 **Getting Started**
+
 Prerequisites
+
 To run this project, you will need:
 
 MATLAB (R2021a or newer recommended)
@@ -43,7 +47,8 @@ Signal Processing Toolbox (Required for functions like pwelch, spectrogram, fir1
 
 Audio Toolbox (Recommended for the real-time audio streaming demonstration)
 
-Installation & Usage
+**Installation & Usage**
+
 Clone this repository to your local machine.
 
 Open MATLAB and navigate to the project directory.
@@ -55,8 +60,11 @@ Note: If no file is found, the system will automatically generate a highly reali
 Run the main script from the MATLAB command window:
 
 Matlab
+
 podcast_enhancer
+
 📊 Outputs and Analysis
+
 When the script finishes running, it will generate the following assets in your directory:
 
 Audio Files:
@@ -70,6 +78,7 @@ dtmf_test_sequence.wav: The generated DTMF tone sequence.
 interpolated_[Hz].wav & decimated_[Hz].wav: Sample rate conversion results.
 
 Visual Analytics:
+
 A comprehensive UI figure will open, displaying:
 
 Time Domain Comparison (Original vs. Enhanced)
@@ -85,6 +94,7 @@ Dynamic Range comparison charts
 Signal-to-Noise Ratio (SNR) improvements
 
 🛠️ Configuration
+
 You can easily tweak the pipeline for your specific microphone or voice type by modifying the setup_enhancement_parameters() function inside the script. Adjustable parameters include:
 
 Noise reduction factor and spectral floor.
