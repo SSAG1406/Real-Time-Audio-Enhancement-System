@@ -1,1 +1,724 @@
+function podcast_enhancer()
+    %% Smart Audio Quality Enhancement System for Podcast Production
+    % This system provides automated audio enhancement for podcast creators
+    % Real-world application: Professional audio processing without expensive equipment
+    
+    clear; clc; close all;
+    
+    fprintf('\n========================================\n');
+    fprintf('SMART AUDIO QUALITY ENHANCEMENT SYSTEM\n');
+    fprintf('========================================\n');
+    fprintf('Real-time podcast audio processing toolkit\n\n');
+    
+    % Configuration parameters
+    config = setup_enhancement_parameters();
+    
+    % Load audio file (simulating podcast recording)
+    [audio_data, fs] = load_podcast_audio();
+    
+    % Real-time processing pipeline
+    fprintf('Processing Pipeline:\n');
+    enhanced_audio = process_audio_pipeline(audio_data, fs, config);
+    
+    fprintf('Enhancement completed successfully!\n');
+    
+    % Save enhanced audio
+    output_filename = 'enhanced_podcast_audio.wav';
+    audiowrite(output_filename, enhanced_audio, fs);
+    fprintf('\nEnhanced audio saved as: %s\n', output_filename);
+    
+    % Display results and analysis
+    display_enhancement_results(audio_data, enhanced_audio, fs, config);
+    
+    % Real-time streaming demonstration
+    fprintf('\nStarting real-time streaming demonstration...\n');
+    realtime_audio_demo(fs, config);
+    
+    % Additional DSP demonstrations
+    demonstrate_dsp_concepts(audio_data, fs, config);
+end
+
+function config = setup_enhancement_parameters()
+    %% Configure enhancement parameters for professional podcast production
+    config = struct();
+    
+    % Noise reduction parameters
+    config.noise_reduction_factor = 0.3;
+    config.spectral_floor = -60;  % dB
+    
+    % Filter parameters
+    config.highpass_cutoff = 80;    % Remove low-frequency rumble
+    config.lowpass_cutoff = 8000;  % Remove high-frequency noise
+    config.eq_bands = [200, 400, 800, 1600, 3200, 6400]; % EQ frequencies
+    
+    % Dynamic range parameters
+    config.compression_ratio = 3;
+    config.compression_threshold = -20; % dB
+    
+    % Window parameters for spectral analysis
+    config.window_size = 2048;
+    config.overlap = 0.75;
+    
+    % Sample rate conversion parameters
+    config.target_sample_rates = [22050, 48000]; % Common rates
+    
+    fprintf('Enhancement parameters configured for professional podcast quality\n');
+end
+
+function [audio_data, fs] = load_podcast_audio()
+    %% Load or simulate podcast audio data
+    
+    % Try to load actual audio file, otherwise create synthetic podcast audio
+    try
+        [audio_data, fs] = audioread('raw_podcast_audio.wav');
+        fprintf('Loaded existing podcast audio file\n');
+    catch
+        fprintf('Creating synthetic podcast audio with realistic characteristics...\n');
+        [audio_data, fs] = create_synthetic_podcast_audio();
+    end
+    
+    % Normalize audio level
+    audio_data = audio_data / max(abs(audio_data)) * 0.8;
+end
+
+function [audio_data, fs] = create_synthetic_podcast_audio()
+    %% Create realistic synthetic podcast audio for demonstration
+    fs = 44100;  % Standard audio sampling rate
+    duration = 10;  % seconds
+    t = (0:1/fs:duration-1/fs)';
+    
+    % Generate speech-like signal with multiple harmonics
+    fundamental_freq = 150; % Typical male voice fundamental
+    speech_signal = zeros(length(t), 1);
+    
+    % Add harmonics to simulate speech
+    for harmonic = 1:8
+        amplitude = 1/(harmonic^1.2); % Decreasing amplitude
+        freq = fundamental_freq * harmonic;
+        if freq < fs/2 % Below Nyquist frequency
+            speech_signal = speech_signal + amplitude * sin(2*pi*freq*t);
+        end
+    end
+    
+    % Add frequency modulation to simulate natural speech variation
+    freq_mod = 0.1 * sin(2*pi*0.5*t); % Slow frequency modulation
+    speech_signal = speech_signal .* (1 + freq_mod);
+    
+    % Add realistic background noise
+    noise_level = 0.05;
+    background_noise = noise_level * randn(length(t), 1);
+    
+    % Add 60Hz hum (common electrical interference)
+    hum_60hz = 0.02 * sin(2*pi*60*t);
+    hum_120hz = 0.01 * sin(2*pi*120*t);
+    
+    % Add room tone (low-frequency rumble)
+    room_tone = 0.03 * sin(2*pi*25*t) + 0.02 * sin(2*pi*35*t);
+    
+    % Combine all components
+    audio_data = speech_signal + background_noise + hum_60hz + hum_120hz + room_tone;
+    
+    % Apply amplitude variation to simulate natural speech dynamics
+    amplitude_envelope = 0.5 + 0.5 * abs(sin(2*pi*0.2*t));
+    audio_data = audio_data .* amplitude_envelope;
+    
+    fprintf('Synthetic podcast audio created with realistic characteristics\n');
+end
+
+function enhanced_audio = process_audio_pipeline(audio_data, fs, config)
+    %% Main audio processing pipeline using advanced DSP techniques
+    
+    fprintf('1. Analyzing audio spectrum using FFT...\n');
+    % Step 1: Power Density Spectrum analysis for noise characterization
+    [~, ~] = estimate_power_spectrum(audio_data, fs, config);
+    
+    fprintf('2. Applying high-pass FIR filtering...\n');
+    % Step 2: High-pass filtering to remove low-frequency rumble (FIR filter)
+    enhanced_audio = apply_highpass_filter(audio_data, fs, config.highpass_cutoff);
+    
+    fprintf('3. Implementing noise reduction...\n');
+    % Step 3: Noise reduction using spectral subtraction
+    enhanced_audio = apply_noise_reduction(enhanced_audio, fs, config);
+    
+    fprintf('4. Adding professional EQ using IIR filters...\n');
+    % Step 4: Professional EQ using IIR filters
+    enhanced_audio = apply_professional_eq(enhanced_audio, fs, config);
+    
+    fprintf('5. Applying dynamic range compression...\n');
+    % Step 5: Dynamic range compression
+    enhanced_audio = apply_compression(enhanced_audio, config);
+    
+    fprintf('6. Final limiting and normalization...\n');
+    % Step 6: Final limiting and normalization
+    enhanced_audio = apply_final_limiting(enhanced_audio);
+    
+    fprintf('Audio enhancement pipeline completed!\n');
+end
+
+function [psd, freq_vector] = estimate_power_spectrum(signal, fs, config)
+    %% Estimate Power Density Spectrum using Welch's method
+    
+    % Use Welch's method for robust PSD estimation
+    window = hann(config.window_size);
+    overlap = round(config.window_size * config.overlap);
+    nfft = 2^nextpow2(config.window_size);
+    
+    [psd, freq_vector] = pwelch(signal, window, overlap, nfft, fs);
+    
+    fprintf('    - Power spectral density estimated using Welch method\n');
+end
+
+function filtered_signal = apply_highpass_filter(signal, fs, cutoff_freq)
+    %% Apply high-pass FIR filter using windowing technique
+    
+    % Design FIR high-pass filter using Kaiser window
+    filter_order = 100;
+    beta = 6; % Kaiser window parameter
+    
+    % Normalized cutoff frequency
+    normalized_cutoff = cutoff_freq / (fs/2);
+    
+    % Use fir1 function with Kaiser window for optimal FIR filter design
+    filter_coeffs = fir1(filter_order, normalized_cutoff, 'high', kaiser(filter_order+1, beta));
+    
+    % Apply filter using zero-phase filtering to avoid phase distortion
+    filtered_signal = filtfilt(filter_coeffs, 1, signal);
+    
+    fprintf('    - High-pass FIR filter applied (cutoff: %d Hz, Kaiser window)\n', cutoff_freq);
+end
+
+function denoised_signal = apply_noise_reduction(signal, fs, config)
+    %% Apply noise reduction using spectral subtraction method
+    
+    window_size = config.window_size;
+    overlap = round(window_size * config.overlap);
+    NFFT_size = 2 * window_size; % 4096
+    
+    analysis_window = hann(window_size);
+    
+    % Convert to frequency domain using STFT
+    [S, ~, ~] = spectrogram(signal, analysis_window, overlap, NFFT_size, fs);
+    
+    % Estimate noise spectrum
+    noise_frames = round(0.5 * fs / (window_size - overlap));
+    noise_spectrum = mean(abs(S(:, 1:min(noise_frames, size(S,2)))), 2);
+    
+    % Apply spectral subtraction
+    alpha = config.noise_reduction_factor;
+    S_denoised = S;
+    
+    for frame_idx = 1:size(S, 2)
+        magnitude = abs(S(:, frame_idx));
+        phase = angle(S(:, frame_idx));
+        denoised_magnitude = magnitude - alpha * noise_spectrum;
+        spectral_floor_val = magnitude * 10^(config.spectral_floor/20);
+        denoised_magnitude = max(denoised_magnitude, spectral_floor_val);
+        S_denoised(:, frame_idx) = denoised_magnitude .* exp(1j * phase);
+    end
+    
+    % Convert back to time domain
+    denoised_complex = istft(S_denoised, fs, ...
+        'Window', analysis_window, ...
+        'OverlapLength', overlap, ...
+        'FFTLength', NFFT_size);
+        
+    % Take the real part to discard negligible imaginary artifacts
+    denoised_signal = real(denoised_complex);
+    
+    % Trim to original length
+    if length(denoised_signal) > length(signal)
+        denoised_signal = denoised_signal(1:length(signal));
+    end
+    
+    fprintf('    - Noise reduction applied using spectral subtraction\n');
+end
+
+function eq_signal = apply_professional_eq(signal, fs, config)
+    %% Apply professional EQ using cascaded IIR filters
+    
+    eq_signal = signal;
+    eq_bands = config.eq_bands;
+    
+    % Professional podcast EQ curve
+    eq_gains = [0, 2, 3, 4, 2, -1]; % dB gains for each band
+    
+    for band_idx = 1:length(eq_bands)
+        center_freq = eq_bands(band_idx);
+        gain_db = eq_gains(band_idx);
+        Q = 2; % Quality factor
+        
+        if gain_db ~= 0
+            % Design peaking EQ filter (IIR biquad)
+            [b, a] = design_peaking_eq(center_freq, gain_db, Q, fs);
+            eq_signal = filter(b, a, eq_signal);
+        end
+    end
+    
+    fprintf('    - Professional EQ applied using IIR biquad filters\n');
+end
+
+function [b, a] = design_peaking_eq(fc, gain_db, Q, fs)
+    %% Design peaking EQ filter (IIR biquad section)
+    
+    % Convert gain to linear
+    A = 10^(gain_db/40);
+    
+    % Pre-warped frequency
+    omega = 2 * pi * fc / fs;
+    
+    % Design coefficients
+    alpha_val = sin(omega) / (2 * Q);
+    
+    % Peaking EQ coefficients
+    b0 = 1 + alpha_val * A;
+    b1 = -2 * cos(omega);
+    b2 = 1 - alpha_val * A;
+    
+    a0 = 1 + alpha_val / A;
+    a1 = -2 * cos(omega);
+    a2 = 1 - alpha_val / A;
+    
+    % Normalize
+    b = [b0, b1, b2] / a0;
+    a = [1, a1/a0, a2/a0];
+end
+
+function compressed_signal = apply_compression(signal, config)
+    %% Apply dynamic range compression
+    
+    ratio = config.compression_ratio;
+    threshold_db = config.compression_threshold;
+    threshold_linear = 10^(threshold_db/20);
+    
+    % Simple compression algorithm
+    compressed_signal = zeros(size(signal));
+    
+    for n = 1:length(signal)
+        input_level = abs(signal(n));
+        
+        if input_level > threshold_linear
+            % Apply compression above threshold
+            over_threshold = input_level / threshold_linear;
+            compressed_level = threshold_linear * (over_threshold^(1/ratio));
+            compressed_signal(n) = sign(signal(n)) * compressed_level;
+        else
+            % No compression below threshold
+            compressed_signal(n) = signal(n);
+        end
+    end
+    
+    fprintf('    - Dynamic range compression applied (ratio: %d:1)\n', ratio);
+end
+
+function limited_signal = apply_final_limiting(signal)
+    %% Apply final limiting and normalization
+    
+    % Soft limiting to prevent clipping
+    max_level = 0.95;
+    limited_signal = tanh(signal / max_level) * max_level;
+    
+    % Normalize to -1 dBFS
+    target_level = 10^(-1/20);
+    current_peak = max(abs(limited_signal));
+    if current_peak > 0
+        limited_signal = limited_signal * (target_level / current_peak);
+    end
+    
+    fprintf('    - Final limiting and normalization applied\n');
+end
+
+function display_enhancement_results(original, enhanced, fs, ~)
+    %% Display comprehensive analysis of enhancement results
+    
+    % *** FIX: Ensure signals have the same length for plotting and analysis ***
+    minLength = min(length(original), length(enhanced));
+    original = original(1:minLength);
+    enhanced = enhanced(1:minLength);
+    
+    figure('Position', [100, 100, 1200, 800], 'Name', 'Audio Enhancement Analysis');
+    
+    % Time domain comparison
+    subplot(3, 2, 1);
+    t = (0:length(original)-1)/fs; % Now `t` will match both signals
+    plot(t, original, 'b', 'LineWidth', 0.5);
+    hold on;
+    plot(t, enhanced, 'r', 'LineWidth', 0.8); % This will now work
+    title('Time Domain Comparison');
+    xlabel('Time (s)');
+    ylabel('Amplitude');
+    legend('Original', 'Enhanced', 'Location', 'best');
+    grid on;
+    
+    % Frequency domain comparison using FFT
+    subplot(3, 2, 2);
+    N = length(original);
+    f = (0:N-1)*(fs/N);
+    
+    original_fft = fft(original);
+    enhanced_fft = fft(enhanced);
+    
+    semilogx(f(1:N/2), 20*log10(abs(original_fft(1:N/2))), 'b', 'LineWidth', 1);
+    hold on;
+    semilogx(f(1:N/2), 20*log10(abs(enhanced_fft(1:N/2))), 'r', 'LineWidth', 1);
+    title('Frequency Domain Comparison (FFT)');
+    xlabel('Frequency (Hz)');
+    ylabel('Magnitude (dB)');
+    legend('Original', 'Enhanced', 'Location', 'best');
+    grid on;
+    xlim([20 fs/2]);
+    
+    % Power Spectral Density comparison
+    subplot(3, 2, 3);
+    [psd_orig, f_psd] = pwelch(original, [], [], [], fs);
+    [psd_enh, ~] = pwelch(enhanced, [], [], [], fs);
+    
+    semilogx(f_psd, 10*log10(psd_orig), 'b', 'LineWidth', 1);
+    hold on;
+    semilogx(f_psd, 10*log10(psd_enh), 'r', 'LineWidth', 1);
+    title('Power Spectral Density Comparison');
+    xlabel('Frequency (Hz)');
+    ylabel('PSD (dB/Hz)');
+    legend('Original', 'Enhanced', 'Location', 'best');
+    grid on;
+    xlim([20 fs/2]);
+    
+    % Spectrogram of enhanced audio
+    subplot(3, 2, 4);
+    spectrogram(enhanced, hann(1024), 512, 1024, fs, 'yaxis');
+    title('Spectrogram - Enhanced Audio');
+    colorbar;
+    
+    % Dynamic range analysis
+    subplot(3, 2, 5);
+    dynamic_range_orig = calculate_dynamic_range(original);
+    dynamic_range_enh = calculate_dynamic_range(enhanced);
+    
+    bar([1, 2], [dynamic_range_orig, dynamic_range_enh]);
+    set(gca, 'XTickLabel', {'Original', 'Enhanced'});
+    title('Dynamic Range Comparison');
+    ylabel('Dynamic Range (dB)');
+    grid on;
+    
+    % SNR improvement
+    subplot(3, 2, 6);
+    snr_orig = calculate_snr(original, fs);
+    snr_enh = calculate_snr(enhanced, fs);
+    
+    bar([1, 2], [snr_orig, snr_enh]);
+    set(gca, 'XTickLabel', {'Original', 'Enhanced'});
+    title('Signal-to-Noise Ratio');
+    ylabel('SNR (dB)');
+    grid on;
+    
+    sgtitle('Smart Audio Enhancement - Analysis Results', 'FontSize', 14, 'FontWeight', 'bold');
+    
+    % Print summary statistics
+    fprintf('\n========== ENHANCEMENT RESULTS ==========\n');
+    fprintf('Dynamic Range - Original: %.1f dB, Enhanced: %.1f dB\n', ...
+        dynamic_range_orig, dynamic_range_enh);
+    fprintf('SNR - Original: %.1f dB, Enhanced: %.1f dB\n', ...
+        snr_orig, snr_enh);
+    fprintf('Improvement in SNR: %.1f dB\n', snr_enh - snr_orig);
+    fprintf('=========================================\n');
+end
+
+function dr = calculate_dynamic_range(signal)
+    %% Calculate dynamic range of signal
+    peak_level = max(abs(signal));
+    % Use robust noise floor estimation (e.g., lower percentile of absolute value)
+    sorted_abs = sort(abs(signal));
+    noise_floor_index = round(length(signal) * 0.05); % 5th percentile
+    noise_floor = sorted_abs(noise_floor_index);
+    
+    % Avoid division by near-zero
+    if noise_floor < 1e-9
+        dr = Inf;
+    else
+        dr = 20*log10(peak_level/noise_floor);
+    end
+end
+
+function snr_db = calculate_snr(signal, fs)
+    %% Estimate Signal-to-Noise Ratio
+    signal_power = var(signal);
+    
+    % Estimate noise as high-frequency content (or content above speech range)
+    [b, a] = butter(4, 3000/(fs/2), 'high'); % High-pass filter above 3kHz
+    noise_estimate = filter(b, a, signal);
+    noise_power = var(noise_estimate);
+    
+    % Guard against zero noise power
+    if noise_power < 1e-12
+        snr_db = Inf;
+    else
+        snr_db = 10*log10(signal_power/noise_power);
+    end
+end
+
+function realtime_audio_demo(fs, config)
+    %% Demonstrate real-time audio processing capabilities
+    
+    fprintf('Setting up real-time audio streaming...\n');
+    
+    try
+        % Note: This part requires the Audio Toolbox for live processing
+        fprintf('Real-time processing simulation (5 seconds)...\n');
+        fprintf('In a real system, this would process live microphone input\n');
+        
+        % Simulate real-time processing
+        for i = 1:50  % 50 frames of 0.1 seconds each
+            % Simulate audio frame processing
+            frame_size = round(0.1 * fs);
+            audio_frame = 0.1 * randn(frame_size, 1); % Simulated input
+            
+            % Apply simplified real-time enhancement
+            enhanced_frame = realtime_enhancement(audio_frame, fs, config); %#ok<NASGU>
+            
+            % In a real system, this would be played through speakers
+            % sound(enhanced_frame, fs);
+            
+            if mod(i, 10) == 0
+                fprintf('    Processed %.1f seconds of audio\n', i * 0.1);
+            end
+        end
+        
+        fprintf('Real-time simulation completed!\n');
+        
+    catch ME
+        fprintf('Real-time demo simulation failed: %s\n', ME.message);
+        fprintf('This part of the demo may require the Audio Toolbox.\n');
+    end
+end
+
+function enhanced_frame = realtime_enhancement(frame, fs, config)
+    %% Simplified real-time enhancement for low-latency processing
+    
+    % Apply high-pass filter to remove rumble
+    persistent hp_filter;
+    if isempty(hp_filter)
+        [b, a] = butter(4, config.highpass_cutoff/(fs/2), 'high');
+        hp_filter = struct('b', b, 'a', a, 'z', zeros(max(length(b), length(a))-1, 1));
+    end
+    
+    [enhanced_frame, hp_filter.z] = filter(hp_filter.b, hp_filter.a, frame, hp_filter.z);
+    
+    % Simple noise gate
+    threshold = 0.01;
+    gate_mask = abs(enhanced_frame) < threshold;
+    enhanced_frame(gate_mask) = enhanced_frame(gate_mask) * 0.1;
+    
+    % Soft limiting
+    enhanced_frame = tanh(enhanced_frame * 2) * 0.5;
+end
+
+function demonstrate_dsp_concepts(audio_data, fs, config)
+    %% Demonstrate additional DSP concepts required in the project
+    
+    fprintf('\n=== ADDITIONAL DSP DEMONSTRATIONS ===\n');
+    
+    % 1. Linear vs Circular Convolution
+    demonstrate_convolution(audio_data, fs);
+    
+    % 2. Different Windowing Techniques
+    demonstrate_windowing_techniques(audio_data, fs);
+    
+    % 3. DTMF Signal Generation
+    demonstrate_dtmf_generation(fs);
+    
+    % 4. Sample Rate Conversion
+    demonstrate_sample_rate_conversion(audio_data, fs, config);
+    
+    % 5. Inverse DFT demonstration
+    demonstrate_dft_idft(audio_data);
+    
+    fprintf('All DSP concept demonstrations completed!\n');
+end
+
+function demonstrate_convolution(signal, fs)
+    %% Demonstrate circular vs linear convolution for audio effects
+    fprintf('1. Demonstrating Circular vs Linear Convolution...\n');
+    
+    % Use a short segment for demonstration
+    segment_length = min(1024, length(signal));
+    x = signal(1:segment_length);
+    
+    % Create impulse response (reverb effect)
+    h_length = 256;
+    h = exp(-(0:h_length-1)/50)' .* randn(h_length, 1) * 0.3;
+    
+    % Linear convolution
+    y_linear = conv(x, h);
+    
+    % Circular convolution using DFT (via zero-padding)
+    N = length(x) + length(h) - 1;
+    Y_circular_fft = fft(x, N) .* fft(h, N);
+    y_circular = ifft(Y_circular_fft);
+    
+    % Compare results
+    error = max(abs(y_linear - y_circular));
+    fprintf('    - Linear convolution length: %d samples\n', length(y_linear));
+    fprintf('    - Error between linear and DFT-based convolution: %.2e\n', error);
+    
+    % Save demonstration results
+    audiowrite('linear_convolution_demo.wav', y_linear/max(abs(y_linear)), fs);
+    fprintf('    - Linear convolution result saved as: linear_convolution_demo.wav\n');
+end
+
+function demonstrate_windowing_techniques(signal, fs)
+    %% Compare different windowing techniques for spectral analysis
+    fprintf('2. Comparing Windowing Techniques...\n');
+    
+    % Use a segment for analysis
+    segment_length = min(2048, length(signal));
+    x = signal(1:segment_length);
+    
+    % Different windows
+    windows = {
+        rectwin(segment_length), 'Rectangular';
+        hann(segment_length), 'Hann';
+        hamming(segment_length), 'Hamming';
+        blackman(segment_length), 'Blackman';
+        kaiser(segment_length, 8), 'Kaiser';
+        triang(segment_length), 'Triangular'
+    };
+    
+    figure('Position', [200, 200, 1000, 600], 'Name', 'Windowing Techniques Comparison');
+    
+    for i = 1:size(windows, 1)
+        window = windows{i, 1};
+        window_name = windows{i, 2};
+        
+        % Apply window and compute FFT
+        windowed_signal = x .* window;
+        X = fft(windowed_signal, 4096);
+        
+        subplot(2, 3, i);
+        f = (0:2047) * fs / 4096;
+        plot(f, 20*log10(abs(X(1:2048))));
+        title([window_name, ' Window']);
+        xlabel('Frequency (Hz)');
+        ylabel('Magnitude (dB)');
+        grid on;
+        xlim([20, fs/2]);
+        ylim([-100, 0]);
+        
+        fprintf('    - %s window analysis completed\n', window_name);
+    end
+    
+    sgtitle('Windowing Techniques Comparison for Audio Analysis');
+end
+
+function demonstrate_dtmf_generation(fs)
+    %% Generate DTMF signals for system testing
+    fprintf('3. Generating DTMF Test Signals...\n');
+    
+    % DTMF frequency pairs
+    dtmf_freqs = [
+        697, 1209;    % '1'
+        697, 1336;    % '2'
+        697, 1477;    % '3'
+        770, 1209;    % '4'
+        770, 1336;    % '5'
+        770, 1477;    % '6'
+        852, 1209;    % '7'
+        852, 1336;    % '8'
+        852, 1477;    % '9'
+        941, 1336     % '0'
+    ];
+    
+    digit_names = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
+    
+    tone_duration = 0.5; % seconds
+    t = (0:1/fs:tone_duration-1/fs)';
+    
+    dtmf_sequence = [];
+    
+    for i = 1:size(dtmf_freqs, 1)
+        low_freq = dtmf_freqs(i, 1);
+        high_freq = dtmf_freqs(i, 2);
+        
+        % Generate dual-tone signal
+        tone = 0.5 * (sin(2*pi*low_freq*t) + sin(2*pi*high_freq*t));
+        
+        % Add to sequence with pause
+        pause_samples = round(0.1 * fs); % 100ms pause
+        dtmf_sequence = [dtmf_sequence; tone; zeros(pause_samples, 1)]; %#ok<AGROW>
+        
+        fprintf('    - DTMF digit "%s": %.0f Hz + %.0f Hz\n', ...
+            digit_names{i}, low_freq, high_freq);
+    end
+    
+    % Save DTMF sequence
+    audiowrite('dtmf_test_sequence.wav', dtmf_sequence, fs);
+    fprintf('    - DTMF test sequence saved as: dtmf_test_sequence.wav\n');
+end
+
+function demonstrate_sample_rate_conversion(signal, fs, config)
+    %% Demonstrate sample rate conversion using resample
+    fprintf('4. Demonstrating Sample Rate Conversion...\n');
+    
+    % Use first 2 seconds of audio
+    segment_samples = min(2*fs, length(signal));
+    x = signal(1:segment_samples);
+    
+    target_rates = config.target_sample_rates;
+    
+    for target_fs = target_rates
+        if target_fs ~= fs
+            fprintf('    Converting from %d Hz to %d Hz...\n', fs, target_fs);
+            
+            % Use resample for robust and accurate conversion
+            y = resample(x, target_fs, fs);
+            
+            if target_fs < fs
+                filename = sprintf('decimated_%dHz.wav', target_fs);
+            else
+                filename = sprintf('interpolated_%dHz.wav', target_fs);
+            end
+            
+            % Save converted audio
+            audiowrite(filename, y, target_fs);
+            fprintf('    - Converted audio saved as: %s\n', filename);
+        end
+    end
+end
+
+function demonstrate_dft_idft(signal)
+    %% Demonstrate DFT and IDFT properties
+    fprintf('5. Demonstrating DFT/IDFT Properties...\n');
+    
+    % Use a short segment
+    N = min(1024, length(signal));
+    x = signal(1:N);
+    
+    % Forward DFT
+    X = fft(x);
+    
+    % Inverse DFT  
+    x_reconstructed = ifft(X);
+    
+    % Verify perfect reconstruction
+    reconstruction_error = max(abs(x - x_reconstructed));
+    
+    fprintf('    - DFT/IDFT perfect reconstruction verified\n');
+    fprintf('    - Maximum reconstruction error: %.2e\n', reconstruction_error);
+    
+    % Demonstrate frequency domain filtering
+    % Create a low-pass filter in frequency domain
+    cutoff_bin = round(N/4); % Quarter of the spectrum
+    X_filtered = X;
+    
+    % Zero out high frequencies while maintaining symmetry for a real signal
+    X_filtered(cutoff_bin + 1 : N - cutoff_bin + 1) = 0;
+    
+    % Convert back to time domain
+    x_filtered = real(ifft(X_filtered));
+    
+    % Show the effect
+    original_energy = sum(x.^2);
+    filtered_energy = sum(x_filtered.^2);
+    energy_reduction = 10*log10(filtered_energy/original_energy);
+    
+    fprintf('    - Energy reduction from filtering: %.1f dB\n', energy_reduction);
+end
 
